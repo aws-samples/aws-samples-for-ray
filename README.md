@@ -1,17 +1,61 @@
-## My Project
+## Setup 
+Clone this repo to run the examples on your local laptop:
+```
+git clone https://github.com/aws-samples/aws-samples-for-ray
 
-TODO: Fill this README out!
+cd aws-samples-for-ray/
+```
 
-Be sure to:
+Start your Ray cluster from your local laptop:
+```
+ray up cluster.yaml
+```
 
-* Change the title in this README
-* Edit your repository description on GitHub
+## Install JupyterLab and MLflow
+Attach to the head node of the Ray cluster
+```
+ray attach cluster.yaml
+```
 
-## Security
+Install Jupyter Lab on the head node of the Ray cluster:
+```
+pip install jupyterlab
+```
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+## Run JupyterLab on the head node of the Ray cluster
+From your local laptop, Attach to the head node of the Ray cluster
+```
+ray attach cluster.yaml
+```
 
-## License
+Run JupyterLab on the head node of the Ray cluster
+```
+nohup jupyter lab > jupyterlab.out &
+```
 
-This library is licensed under the MIT-0 License. See the LICENSE file.
+## Tunnel ports from local laptop to the head node of the Ray cluster
+From your local laptop, tunnel port 8888 to the Ray cluster:
+```
+ray attach cluster.yaml -p 8888
+```
 
+From your local laptop, start the dashboard and tunnel port 8265 to the Ray cluster:
+```
+ray dashboard cluster.yaml # This implicitly tunnels port 8265
+```
+
+## Navigate to the JupyterLab and MLflow UIs
+From your local laptop, run this command to get the JupyterLab url (and `?token=`) 
+```
+ray exec cluster.yaml "jupyter server list"
+```
+
+Navigate your browser to the URL from above to start using JupyterLab:
+```
+http://127.0.0.1:8888?token=...
+```
+
+![](img/workspace.png)
+
+## References
+* Customize your Ray cluster on AWS as shown here:  https://docs.ray.io/en/master/cluster/cloud.html
