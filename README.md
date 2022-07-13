@@ -1,9 +1,11 @@
-## Ray on SageMaker
+## Ray on Amazon SageMaker
+Click [here](sagemaker/) to run a Ray job on SageMaker.
 
-## Ray on EKS
+## Ray on Amazon EC2
+Click [here](ec2/) to setup a Ray cluster on EC2 with CloudWatch integration.
 
-## Ray on EC2
-Click [here](setup_ray.md) to setup Ray on EC2 with CloudWatch integration.
+## Ray on Amazon EKS
+Click [here](eks/) to run a Ray job on Amazon EKS.
 
-## Ray on EMR
-...
+## Ray on Amazon EMR
+Click [here](emr/) to setup a Ray cluster on EMR.
