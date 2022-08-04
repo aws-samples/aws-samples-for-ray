@@ -3,7 +3,7 @@
 # First, if we're on a worker node, just run our pip installs
 # They might get overwritten - we'll need to validate later
 if grep isMaster /mnt/var/lib/info/instance.json | grep false; then
-    sudo python3 -m pip install -U scikit-learn ray[all]
+    sudo python3 -m pip install -U ray==2.0.0rc0 
 
     RAY_HEAD_IP=$(grep "\"masterHost\":" /emr/instance-controller/lib/info/extraInstanceData.json | cut -f2 -d: | cut -f2 -d\")
 
@@ -48,9 +48,9 @@ echo "EMR provisioned! Continuing with installation..."
 # Update notebook env to use python 3.7.10 and install libs
 sudo /emr/notebook-env/bin/conda install --name base -y python==3.7.10
 sudo /emr/notebook-env/bin/conda install -y python==3.7.10
-sudo /emr/notebook-env/bin/pip install -U scikit-learn ray[all]  # torch transformers pandas datasets accelerate scikit-learn mlflow ray[all]
+sudo /emr/notebook-env/bin/pip install -U ray==2.0.0rc0 
 
-sudo pip3 install -U scikit-learn ray[all] # torch transformers pandas datasets accelerate scikit-learn mlflow ray[all]
+sudo pip3 install -U ray==2.0.0rc0 
 
 sudo mkdir -p /tmp/ray/
 sudo chmod a+rwx -R /tmp/ray/
