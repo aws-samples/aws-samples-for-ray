@@ -155,6 +155,13 @@ def tune_cifar(data_dir,
     
     cluster_resources = ray.cluster_resources()
     concurrent_jobs = cluster_resources["GPU"] // num_workers
+    
+    if concurrent_jobs == 0:
+        concurrent_jobs = cluster_resources["GPU"]
+        num_workers = 1
+        print(f"Specified number of workers {num_workers} is greater than the number of available GPUs in the cluster {cluster_resources['GPU']}")
+        print(f"{concurrent_jobs} concurrent training job(s) will be run each using {num_workers} GPUs")
+    
     available_cpus = cluster_resources["CPU"] - concurrent_jobs
     cpus_per_worker = cpus_per_worker = (available_cpus // num_workers) // concurrent_jobs
     
