@@ -8,13 +8,13 @@ cd aws-samples-for-ray/
 
 Start your Ray cluster from your local laptop:
 ```
-ray up cluster.yaml
+ray up cluster.yaml # or cluster-gpu.yaml
 ```
 
 ## Install JupyterLab and MLflow
 Attach to the head node of the Ray cluster
 ```
-ray attach cluster.yaml
+ray attach cluster.yaml # or cluster-gpu.yaml
 ```
 
 Install Jupyter Lab on the head node of the Ray cluster:
@@ -25,7 +25,7 @@ pip install jupyterlab
 ## Run JupyterLab on the head node of the Ray cluster
 From your local laptop, Attach to the head node of the Ray cluster
 ```
-ray attach cluster.yaml
+ray attach cluster.yaml # or cluster-gpu.yaml
 ```
 
 Run JupyterLab on the head node of the Ray cluster
