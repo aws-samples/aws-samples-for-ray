@@ -56,6 +56,3 @@ http://127.0.0.1:8888?token=...
 ```
 
 ![](img/workspace.png)
-
-## References
-* Customize your Ray cluster on AWS as shown here:  https://docs.ray.io/en/master/cluster/cloud.html
