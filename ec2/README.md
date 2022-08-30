@@ -6,7 +6,7 @@ git clone https://github.com/aws-samples/aws-samples-for-ray
 cd aws-samples-for-ray/
 ```
 
-Start your Ray cluster from your local laptop:
+Start your Ray cluster from your local laptop (substitute `cluster-gpu.yaml` everywhere to use GPUs):
 ```
 ray up cluster.yaml
 ```
@@ -56,6 +56,3 @@ http://127.0.0.1:8888?token=...
 ```
 
 ![](img/workspace.png)
-
-## References
-* Customize your Ray cluster on AWS as shown here:  https://docs.ray.io/en/master/cluster/cloud.html

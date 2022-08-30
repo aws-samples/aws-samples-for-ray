@@ -1,3 +1,5 @@
+![Ray on AWS](img/ray-on-aws.png)
+
 ## Ray on Amazon SageMaker
 Click [here](sagemaker/) to run a Ray job on SageMaker.
 
