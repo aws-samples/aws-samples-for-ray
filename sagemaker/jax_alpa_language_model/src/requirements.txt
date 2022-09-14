@@ -1,0 +1,9 @@
+--find-links https://pypi.org/simple/
+--find-links https://alpa-projects.github.io/wheels.html
+ray[default]
+alpa
+tensorflow
+jaxlib==0.3.15+cuda113.cudnn820
+cupy-cuda11x
+flax
+optax
