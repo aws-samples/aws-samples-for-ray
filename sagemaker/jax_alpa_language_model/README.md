@@ -18,6 +18,8 @@ limitations under the License.
 Adopted from https://github.com/alpa-projects/alpa/tree/main/examples/language_model
 and https://github.com/huggingface/transformers/tree/main/examples/flax/language-modeling
 
+More on Alpa:  https://ai.googleblog.com/2022/05/alpa-automated-model-parallel-deep.html
+
 Use `alpa.parallelize` to parallelize the training loop.
 
 --------------------------------------------------------------------------------
