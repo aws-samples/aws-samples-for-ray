@@ -140,4 +140,4 @@ This should take less than ~21 hours on a single TPUv3-8 or a machine with 8 V10
 Training statistics can be accessed on [tfhub.de](https://tensorboard.dev/experiment/2zEhLwJ0Qp2FAkI3WVH9qA).
 
 For a step-by-step walkthrough of how to do causal language modeling in Flax, please have a 
-look at [this](https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/causal_language_modeling_flax.ipynb) google colab.
+look at https://github.com/huggingface/notebooks/blob/main/examples/causal_language_modeling_flax.ipynb
