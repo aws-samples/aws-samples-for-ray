@@ -1,0 +1,7 @@
+ray
+ray[rllib]
+ray[tune]
+gym
+dm-tree
+pygame
+tensorflow-probability==0.16.0
