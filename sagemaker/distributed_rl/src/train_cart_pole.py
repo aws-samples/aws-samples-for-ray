@@ -22,7 +22,9 @@ def my_train_fn(configuration, reporter):
     ppo_config = PPOConfig().update_from_dict(configuration).environment("CartPole-v1")
     
     # set/add constant values
-    # can include these values as Hyperparameters if desired
+    # can include these values as constants or add as hyperparameters if desired
+    # if uncommented these values will give you an episode_reward_mean of 500
+#     ppo_config["lr"] = 0.001
 #     ppo_config["gamma"] = 0.99
 #     ppo_config["kl_coeff"] = 1.0
 #     ppo_config["num_sgd_iter"] = 20
@@ -34,8 +36,8 @@ def my_train_fn(configuration, reporter):
         result = agent.train()
         reporter(**result)
         # create custom logic to save checkpoint and check for stopping condition
-        # every 10 iterations
-        if i % 10 == 0:
+        # every 5 iterations
+        if i % 5 == 0:
             state = agent.save(CHECKPOINT_ROOT)
         # setup custom logic for stopping condition
         # stop iterations if reward is greater than 450
@@ -72,6 +74,21 @@ if __name__ == "__main__":
         type=float,
         default=0.001
     )
+    parser.add_argument(
+        "--gamma",
+        type=float,
+        default=0.99
+    ),
+    parser.add_argument(
+        "--kl_coeff",
+        type=float,
+        default=1.0
+    ),
+    parser.add_argument(
+        "--num_sgd_iter",
+        type=int,
+        default=20
+    )
 
     args = parser.parse_args()
 
@@ -79,15 +96,16 @@ if __name__ == "__main__":
     ray_helper.start_ray()
 
     cluster_resources = ray.cluster_resources()
-    num_cpus = int(cluster_resources["CPU"])
     print(f"all cluster resources = {cluster_resources}")
 
     config = {
-        # Special flag signalling `my_train_fn` how many iters to do.
         "train-iterations": args.train_iterations,
         "num_workers": args.num_workers,
         "framework": args.framework,
-        "lr": args.lr
+        "lr": args.lr,
+        "gamma": args.gamma,
+        "kl_coeff": args.kl_coeff,
+        "num_sgd_iter": args.num_sgd_iter
     }
 
     resources = PPO.default_resource_request(config)
