@@ -8,7 +8,6 @@ import os
 import ray
 from ray.air.config import ScalingConfig
 from ray.data import Dataset
-from ray.air.result import Result
 from ray.data.preprocessors import StandardScaler
 
 def read_parameters():
@@ -60,7 +59,7 @@ def split_dataset(dataset, train_size, val_size, test_size, random_state=None):
 
 def scale_dataset(train_set, val_set, test_set, target_col):
     """
-    Fit StandardScaler to df_train and apply it to df_val and df_test
+    Fit StandardScaler to train_set and apply it to val_set and test_set
     Args:
         train_set (ray.data.Dataset): train dataset
         val_set (ray.data.Dataset): validation dataset
@@ -107,7 +106,6 @@ try:
     os.makedirs(test_data_path)
 except:
     pass
-
 
 # read data input
 dataset = ray.data.read_csv(input_data_path)
