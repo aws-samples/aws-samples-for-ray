@@ -58,7 +58,7 @@ class Featurestore:
 
         return pd.concat(frames)
 
-
+    # 
     def wait_for_feature_group_creation_complete(self,feature_group):
         """
         Function that waits for feature group to be created in SageMaker Feature Store
@@ -91,70 +91,89 @@ class Featurestore:
         sagemaker_session = sagemaker.Session(boto3.Session(region_name=region))
 
         default_bucket = sagemaker_session.default_bucket()
-        sm_client.create_feature_group(
-            FeatureGroupName=feature_group_name,
-            RecordIdentifierFeatureName='record_id',
-            EventTimeFeatureName='event_time',
-            OnlineStoreConfig={
-                "EnableOnlineStore": False
-            },
-            OfflineStoreConfig={
-                "S3StorageConfig": {
-                    "S3Uri": f's3://{default_bucket}/{prefix}', 
-                }, 
-            },
-            FeatureDefinitions=[
-                {
-                    'FeatureName': 'record_id',
-                    'FeatureType': 'Integral'
-                },
-                {
-                    'FeatureName': 'event_time',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'NUM_BATHROOMS',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'NUM_BEDROOMS',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'FRONT_PORCH',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'LOT_ACRES',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'DECK',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'SQUARE_FEET',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'YEAR_BUILT',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'GARAGE_SPACES',
-                    'FeatureType': 'Fractional'
-                },
-                {
-                    'FeatureName': 'PRICE',
-                    'FeatureType': 'Integral'
-                },
-            ],
-            RoleArn=role_arn
+        
+        # Search to see if the Feature Group already exists
+        results = sm_client.search(
+            Resource="FeatureGroup",
+            SearchExpression={
+                'Filters': [
+                    {
+                        'Name': 'FeatureGroupName',
+                        'Operator': 'Equals',
+                        'Value': feature_group_name
+                    },
+                ]
+            }
         )
+        
+        # If a FeatureGroup was not found with the name, create one
+        if not results['Results']:
+            sm_client.create_feature_group(
+                FeatureGroupName=feature_group_name,
+                RecordIdentifierFeatureName='record_id',
+                EventTimeFeatureName='event_time',
+                OnlineStoreConfig={
+                    "EnableOnlineStore": False
+                },
+                OfflineStoreConfig={
+                    "S3StorageConfig": {
+                        "S3Uri": f's3://{default_bucket}/{prefix}', 
+                    }, 
+                },
+                FeatureDefinitions=[
+                    {
+                        'FeatureName': 'record_id',
+                        'FeatureType': 'Integral'
+                    },
+                    {
+                        'FeatureName': 'event_time',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'NUM_BATHROOMS',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'NUM_BEDROOMS',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'FRONT_PORCH',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'LOT_ACRES',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'DECK',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'SQUARE_FEET',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'YEAR_BUILT',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'GARAGE_SPACES',
+                        'FeatureType': 'Fractional'
+                    },
+                    {
+                        'FeatureName': 'PRICE',
+                        'FeatureType': 'Integral'
+                    },
+                ],
+                RoleArn=role_arn
+            )
+        
         fs_group = FeatureGroup(
             name=feature_group_name, 
             sagemaker_session=sagemaker_session
         )
+        
         self.wait_for_feature_group_creation_complete(fs_group)
         return fs_group
 
@@ -168,9 +187,6 @@ class Featurestore:
         featurestore_runtime_client = boto3.client('sagemaker-featurestore-runtime', region_name=region)
 
         print(f'Ingesting data into feature group: {feature_group_name}, df length is {len(df)} ...')
-        #current_time_sec = int(round(time.time()))
-        # create event time
-        #df['event_time'] = pd.Series([current_time_sec]*len(df), dtype="float64")
         for index, row in df.iterrows(): 
             try:
                 featurestore_runtime_client.put_record(

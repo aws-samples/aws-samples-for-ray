@@ -1,6 +1,6 @@
 import subprocess
 import sys
-subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'sagemaker','ray'])
+subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'sagemaker','ray', 'pyarrow >= 6.0.1'])
 
 import argparse
 import os

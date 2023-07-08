@@ -83,7 +83,7 @@ def load_dataset(fs_data_loc, target_col="price"):
     if '/test/' in fs_data_loc:
         cols_to_drop.append(target_col)
 
-    ds = ray.data.read_parquet(fs_data_loc)
+    ds = ray.data.read_csv(fs_data_loc)
     ds = ds.drop_columns(cols_to_drop)
     print(f"{fs_data_loc} count is {ds.count()}")
 
