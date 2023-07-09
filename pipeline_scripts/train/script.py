@@ -75,7 +75,7 @@ def load_dataset(fs_data_loc, target_col="price"):
     # Drop columns added by the feature store
     cols_to_drop = ["record_id", "event_time","write_time", 
                     "api_invocation_time", "is_deleted", 
-                    'year', "month", "day", "hour"]
+                    "year", "month", "day", "hour"]
                     
     
     # A simple check is this is test data

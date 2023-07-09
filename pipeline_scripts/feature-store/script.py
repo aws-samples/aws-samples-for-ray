@@ -26,17 +26,20 @@ class Featurestore:
         pass
     
     def process_input(self, data_path, feature_group_name, bucket_prefix, region, role_arn):
-        df_transformed = self.read_csv(data_path)
-        df_transformed = self.prepare_df_for_feature_store(df_transformed, feature_group_name)
-        
-        self.create_feature_group(
-            feature_group_name, 
-            bucket_prefix,
-            role_arn,
-            region
-        )
-        
-        self.ingest_features(feature_group_name, df_transformed, region)
+        try:
+            df_transformed = self.read_csv(data_path)
+            df_transformed = self.prepare_df_for_feature_store(df_transformed, feature_group_name)
+
+            self.create_feature_group(
+                feature_group_name, 
+                bucket_prefix,
+                role_arn,
+                region
+            )
+
+            self.ingest_features(feature_group_name, df_transformed, region)
+        except Exception as e:
+            print(f"An error occurred: {e}\nFailed to process for feature group {feature_group_name}");
         
     def read_csv(self,path):
         """
@@ -276,7 +279,7 @@ def read_parameters():
     parser.add_argument('--validation_feature_group_name', type=str, default='fs-validation')
     parser.add_argument('--test_feature_group_name', type=str, default='fs-test')
     parser.add_argument('--bucket_prefix', type=str, default='aws-ray-mlops-workshop/feature-store')
-    parser.add_argument('--region', type=str)
+    parser.add_argument('--region', type=str, default='us-east-1')
     parser.add_argument('--role_arn', type=str)
     params, _ = parser.parse_known_args()
     return params

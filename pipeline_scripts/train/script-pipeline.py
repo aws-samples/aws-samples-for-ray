@@ -12,6 +12,8 @@ import sagemaker
 # Experiments
 from sagemaker.session import Session
 from sagemaker.experiments.run import load_run
+from sagemaker.feature_store.feature_group import FeatureGroup
+from sagemaker.workflow.pipeline_context import PipelineSession
 
 import ray
 from ray.train.xgboost import XGBoostTrainer
@@ -24,6 +26,8 @@ from sagemaker_ray_helper import RayHelper
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
+
+session = PipelineSession()
 
 def read_parameters():
     parser = argparse.ArgumentParser()
@@ -43,6 +47,8 @@ def read_parameters():
     parser.add_argument('--model_dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
     parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAIN'))
     parser.add_argument('--validation', type=str, default=os.environ.get('SM_CHANNEL_VALIDATION'))
+    parser.add_argument('--train_feature_group_name', type=str, default='fs-train')
+    parser.add_argument('--validation_feature_group_name', type=str, default='fs-validation')
     parser.add_argument('--sm_hosts', type=str, default=os.environ.get('SM_HOSTS'))
     parser.add_argument('--sm_current_host', type=str, default=os.environ.get('SM_CURRENT_HOST'))
     
@@ -63,7 +69,7 @@ def read_parameters():
     args, _ = parser.parse_known_args()
     return args
 
-def load_dataset(fs_data_loc, target_col="price"):
+def load_dataset(feature_group_name, target_col="price"):
     """
     Loads the data as a ray dataset from the offline featurestore S3 location
     Args:
@@ -72,16 +78,24 @@ def load_dataset(fs_data_loc, target_col="price"):
     Returns:
         ds (ray.data.dataset): Ray dataset the contains the requested dat from the feature store
     """
+    fs_group = FeatureGroup(
+        name=feature_group_name, 
+        sagemaker_session=session
+    )
+
+    fs_data_loc = fs_group.describe().get("OfflineStoreConfig").get("S3StorageConfig").get("ResolvedOutputS3Uri")
+    
     # Drop columns added by the feature store
-    cols_to_drop = []
-                    
+    cols_to_drop = ["record_id", "event_time","write_time", 
+                    "api_invocation_time", "is_deleted", 
+                    "year", "month", "day", "hour"]           
     
     # A simple check is this is test data
     # If True add the target column to the columns list to be dropped
     if '/test/' in fs_data_loc:
         cols_to_drop.append(target_col)
 
-    ds = ray.data.read_csv(fs_data_loc)
+    ds = ray.data.read_parquet(fs_data_loc)
     ds = ds.drop_columns(cols_to_drop)
     print(f"{fs_data_loc} count is {ds.count()}")
 
@@ -130,8 +144,8 @@ def main():
         "num_round": 100
     }
 
-    ds_train = load_dataset(args.train, args.target_col)
-    ds_validation = load_dataset(args.validation, args.target_col)
+    ds_train = load_dataset(args.train_feature_group_name, args.target_col)
+    ds_validation = load_dataset(args.validation_feature_group_name, args.target_col)
     
     result = train_xgboost(ds_train, ds_validation, hyperparams, args.num_ray_workers, args.use_gpu, args.target_col)
     metrics = result.metrics
