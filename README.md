@@ -2,7 +2,7 @@
 
 This workshop goes through a common customer journey when beginning and maturing their MLOps journey from Initial to Scalable. 
 
-![MLOPs stages of adoption](images/maturity-model-1.png)
+![Ray on AWS](images/open-source-Ray-AWS-integrations.png)
 
 This workshop will introduce the use of [Ray](https://docs.ray.io/en/latest/ray-overview/getting-started.html) on Sagemaker. Ray is an open-source distributed computing framework designed to accelerate and simplify the development of scalable and efficient machine learning applications. It provides a simple and flexible API for defining and executing [tasks](https://docs.ray.io/en/latest/ray-core/tasks.html) and [actors](https://docs.ray.io/en/latest/ray-core/actors.html) on a cluster of machines, allowing you to easily scale your machine learning workloads from a single machine to thousands of nodes.
 
