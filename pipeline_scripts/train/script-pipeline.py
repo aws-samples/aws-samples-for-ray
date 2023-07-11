@@ -7,6 +7,7 @@ import time
 import argparse
 import json
 import logging
+import ray.cloudpickle as cloudpickle
 import boto3
 import sagemaker
 # Experiments
@@ -26,8 +27,6 @@ from sagemaker_ray_helper import RayHelper
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
-
-session = PipelineSession()
 
 def read_parameters():
     parser = argparse.ArgumentParser()
@@ -69,7 +68,7 @@ def read_parameters():
     args, _ = parser.parse_known_args()
     return args
 
-def load_dataset(feature_group_name, target_col="price"):
+def load_dataset(feature_group_name, region, target_col="price"):
     """
     Loads the data as a ray dataset from the offline featurestore S3 location
     Args:
@@ -78,6 +77,7 @@ def load_dataset(feature_group_name, target_col="price"):
     Returns:
         ds (ray.data.dataset): Ray dataset the contains the requested dat from the feature store
     """
+    session = sagemaker.Session(boto3.Session(region_name=region))
     fs_group = FeatureGroup(
         name=feature_group_name, 
         sagemaker_session=session
@@ -89,11 +89,6 @@ def load_dataset(feature_group_name, target_col="price"):
     cols_to_drop = ["record_id", "event_time","write_time", 
                     "api_invocation_time", "is_deleted", 
                     "year", "month", "day", "hour"]           
-    
-    # A simple check is this is test data
-    # If True add the target column to the columns list to be dropped
-    if '/test/' in fs_data_loc:
-        cols_to_drop.append(target_col)
 
     ds = ray.data.read_parquet(fs_data_loc)
     ds = ds.drop_columns(cols_to_drop)
@@ -141,15 +136,16 @@ def main():
         "tree_method": "approx",
         "objective": "reg:squarederror",
         "eval_metric": ["mae", "rmse"],
-        "num_round": 100
+        "num_round": 100,
+        "seed": 47
     }
 
-    ds_train = load_dataset(args.train_feature_group_name, args.target_col)
-    ds_validation = load_dataset(args.validation_feature_group_name, args.target_col)
+    ds_train = load_dataset(args.train_feature_group_name, args.region, args.target_col)
+    ds_validation = load_dataset(args.validation_feature_group_name, args.region, args.target_col)
     
     result = train_xgboost(ds_train, ds_validation, hyperparams, args.num_ray_workers, args.use_gpu, args.target_col)
     metrics = result.metrics
-    checkpoint = result.checkpoint.to_directory(path=os.path.join(args.model_dir, f'model.xgb'))
+    #checkpoint = result.checkpoint.to_directory(path=os.path.join(args.model_dir, f'model.xgb'))
     trainMAE = metrics['train-mae']
     trainRMSE = metrics['train-rmse']
     valMAE = metrics['valid-mae']
@@ -159,12 +155,21 @@ def main():
     print('[3] #011validation-mae:{}'.format(valMAE))
     print('[4] #011validation-rmse:{}'.format(valRMSE))
     
+    output_path=os.path.join(args.model_dir, 'model.pkl')
+    # Serialize the trained model using ray.cloudpickle
+    serialized_model = cloudpickle.dumps(result)
+
+    # Save the serialized model to a file
+    with open(output_path, 'wb') as f:
+        f.write(serialized_model)
+    
+    # Track experiment if using SageMaker Training
     local_testing = False
     try:
         load_run(sagemaker_session=sess)
     except:
         local_testing = True
-    if not local_testing: # Track experiment if using SageMaker Training
+    if not local_testing: 
         with load_run(sagemaker_session=sess) as run:
             run.log_metric('train-mae', trainMAE)
             run.log_metric('train-rmse', trainRMSE)

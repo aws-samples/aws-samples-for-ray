@@ -9,6 +9,8 @@ import json
 import logging
 import boto3
 import sagemaker
+import ray.cloudpickle as cloudpickle
+
 # Experiments
 from sagemaker.session import Session
 from sagemaker.experiments.run import load_run
@@ -137,7 +139,8 @@ def main():
     
     result = train_xgboost(ds_train, ds_validation, hyperparams, args.num_ray_workers, args.use_gpu, args.target_col)
     metrics = result.metrics
-    checkpoint = result.checkpoint.to_directory(path=os.path.join(args.model_dir, f'model.xgb'))
+    
+    # checkpoint = result.checkpoint.to_directory(path=os.path.join(args.model_dir, f'model.xgb'))
     trainMAE = metrics['train-mae']
     trainRMSE = metrics['train-rmse']
     valMAE = metrics['valid-mae']
@@ -147,6 +150,14 @@ def main():
     print('[3] #011validation-mae:{}'.format(valMAE))
     print('[4] #011validation-rmse:{}'.format(valRMSE))
     
+    output_path=os.path.join(args.model_dir, f'model.pkl')
+    # Serialize the trained model using ray.cloudpickle
+    serialized_model = cloudpickle.dumps(result)
+
+    # Save the serialized model to a file
+    with open(output_path, 'wb') as f:
+        f.write(serialized_model)
+
     local_testing = False
     try:
         load_run(sagemaker_session=sess)

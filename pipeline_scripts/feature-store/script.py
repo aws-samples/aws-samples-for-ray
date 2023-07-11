@@ -80,13 +80,12 @@ class Featurestore:
 
     def create_feature_group(self,feature_group_name, prefix, role_arn, region):
         """
-        Create Feature Store Group
+        Create Feature Group
         Args:
             feature_group_name (str): Feature Store Group Name
-            sagemaker_session (sagemaker.session.Session): sagemaker session
-            df (pandas.DataFrame): dataframe to injest used to create features definition
             prefix (str): geature group prefix (train/validation or test)
             role_arn (str): role arn to create feature store
+            region (str): region to ccreate the FG in
         Returns:
             fs_group (sagemaker.feature_store.feature_group.FeatureGroup): Feature Group
         """
@@ -185,7 +184,8 @@ class Featurestore:
         Ingest features to Feature Store Group
         Args:
             feature_group_name (str): Feature Group Name
-            data_path (str): Path to the train/validation/test data in CSV format.
+            df (pd.DataFrame): Data to be ingested into the feature store
+            rgion (str): The region where the FG is
         """
         featurestore_runtime_client = boto3.client('sagemaker-featurestore-runtime', region_name=region)
 
