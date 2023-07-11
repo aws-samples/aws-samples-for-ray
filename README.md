@@ -14,7 +14,7 @@ Ray is widely used in both industry and academia, and has a large and active com
 
 ## Lab Introduction
 
-Please refer to the following link for detailed workshop guidance: [SageMaker MLOps Workshop](https://bit.ly/40txRE6)
+Please refer to the following link for detailed workshop guidance: [SageMaker Ray MLOps Workshop](https://blah)
 
 
 ## Additional Resources
