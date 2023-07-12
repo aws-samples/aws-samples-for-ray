@@ -1,6 +1,6 @@
-# End-to-End Machine Learning using ray
+# End-to-End Machine Learning using Ray on SageMaker
 
-This workshop goes through a common customer journey when beginning and maturing their MLOps journey from Initial to Scalable. 
+This workshop goes through a common customer example when beginning and maturing their MLOps journey from Initial to Scalable. 
 
 ![Ray on AWS](images/open-source-Ray-AWS-integrations.png)
 
@@ -14,7 +14,12 @@ Ray is widely used in both industry and academia, and has a large and active com
 
 ## Lab Introduction
 
-Please refer to the following link for detailed workshop guidance: [SageMaker Ray MLOps Workshop](https://blah)
+We suggest use `Data Science 3.0` and `Python 3` kernel image, instance type `ml.t3.medium` for SageMaker Studio notebook while running this workshop.
+
+[Lab 1](1-data-prep-feature-store-ray.ipynb): Prepare data using Ray in SageMaker Processing Job and ingest data into SageMaker Feature Store
+[Lab 2](2-training-registry-ray.ipynb): Use Ray to train and tune a XgBoost model on SageMaker and regiter the best model to SageMaker Model Registry
+[Lab 3](3-deployment.ipynb): Deploy trained XgBoost model as a SageMaker real-time endpoint
+[Lab 4](4-sagemaker-pipeline-ray.ipynb): 
 
 
 ## Additional Resources

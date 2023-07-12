@@ -3,14 +3,12 @@ import sys
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'sagemaker','ray', 'xgboost_ray', 'pyarrow >= 6.0.1'])
 import os
 import time
-
+import ray.cloudpickle as cloudpickle
 import argparse
 import json
 import logging
 import boto3
 import sagemaker
-import ray.cloudpickle as cloudpickle
-
 # Experiments
 from sagemaker.session import Session
 from sagemaker.experiments.run import load_run
@@ -131,7 +129,8 @@ def main():
         "tree_method": "approx",
         "objective": "reg:squarederror",
         "eval_metric": ["mae", "rmse"],
-        "num_round": 100
+        "num_round": 100,
+        "seed": 47
     }
 
     ds_train = load_dataset(args.train, args.target_col)
@@ -139,8 +138,16 @@ def main():
     
     result = train_xgboost(ds_train, ds_validation, hyperparams, args.num_ray_workers, args.use_gpu, args.target_col)
     metrics = result.metrics
-    
     # checkpoint = result.checkpoint.to_directory(path=os.path.join(args.model_dir, f'model.xgb'))
+    
+    output_path=os.path.join(args.model_dir, f'model.pkl')
+    # Serialize the trained model using ray.cloudpickle
+    serialized_model = cloudpickle.dumps(result)
+
+    # Save the serialized model to a file
+    with open(output_path, 'wb') as f:
+        f.write(serialized_model)
+    
     trainMAE = metrics['train-mae']
     trainRMSE = metrics['train-rmse']
     valMAE = metrics['valid-mae']
@@ -150,14 +157,6 @@ def main():
     print('[3] #011validation-mae:{}'.format(valMAE))
     print('[4] #011validation-rmse:{}'.format(valRMSE))
     
-    output_path=os.path.join(args.model_dir, f'model.pkl')
-    # Serialize the trained model using ray.cloudpickle
-    serialized_model = cloudpickle.dumps(result)
-
-    # Save the serialized model to a file
-    with open(output_path, 'wb') as f:
-        f.write(serialized_model)
-
     local_testing = False
     try:
         load_run(sagemaker_session=sess)
