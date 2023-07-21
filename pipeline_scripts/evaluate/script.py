@@ -54,18 +54,19 @@ if __name__ == "__main__":
     test_path = "/opt/ml/processing/test/"
     # Get list of all csv files in folder
     csv_files = glob.glob(f'{test_path}*.csv')
-    # Create empty dataframe
-    df = pd.DataFrame()
     
-    # Loop through csv files and read into df 
-    for f in csv_files:
-        filename = os.path.basename(f)
-        tmp_df = pd.read_csv(f, header=None)
-        df = pd.concat([df, tmp_df], ignore_index=True)
+    # Read each CSV file into DataFrame
+    # This creates a list of dataframes
+    df_list = (pd.read_csv(file, header=0) for file in csv_files)
 
-    y_test = df.iloc[:, 0].to_numpy()
-    df.drop(df.columns[0], axis=1, inplace=True)
-    X_test = df.to_numpy()
+    # Concatenate all DataFrames
+    df = pd.concat(df_list, ignore_index=True)
+    df.reset_index(drop=True, inplace=True)
+    print(df.head(5))
+    y_test = df["PRICE"].to_numpy()
+    df.drop(columns=["PRICE"], axis=1, inplace=True)
+
+    X_test = xgb.DMatrix(df.values)
     
     logger.info('Performing predictions against test data.')
     predictions = model.predict(X_test)
@@ -76,13 +77,16 @@ if __name__ == "__main__":
     mae = mean_absolute_error(y_test, predictions)
     mse = mean_squared_error(y_test, predictions)
     rmse = sqrt(mse)
+    std = np.std(y_test - predictions)
     report_dict = {
         'regression_metrics': {
             'mae': {
                 'value': mae,
+                "standard_deviation": std
             },
             'rmse': {
                 'value': rmse,
+                "standard_deviation": std
             },
         },
     }
