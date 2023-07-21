@@ -2,9 +2,7 @@
 import subprocess
 import sys
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'sagemaker', 'ray', 'modin[ray]', 'pydantic==1.10.10'])
-
 from sagemaker.feature_store.feature_group import FeatureGroup
-
 import argparse
 import os
 import numpy as np
@@ -17,7 +15,6 @@ import boto3
 import glob
 import modin.pandas as pd
 import ray
-
 
 @ray.remote
 class Featurestore:
