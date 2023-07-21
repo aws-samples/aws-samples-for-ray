@@ -18,13 +18,14 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 # Sagemaker specific imports
 from sagemaker.session import Session
-from sagemaker.experiments.run import load_run
-import modin.pandas as pd
+import pandas as pd
+import xgboost as xgb
+
 # Ray specific imports
-import ray
-from ray.air.checkpoint import Checkpoint
-from ray.train.xgboost import XGBoostCheckpoint, XGBoostPredictor
-import ray.cloudpickle as cloudpickle
+# import ray
+# from ray.air.checkpoint import Checkpoint
+# from ray.train.xgboost import XGBoostCheckpoint, XGBoostPredictor
+# import ray.cloudpickle as cloudpickle
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -33,33 +34,48 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 if __name__ == "__main__":
     logger.debug('Starting evaluation.')
     
-    model_dir = '/opt/ml/processing/model/'
+    model_dir = '/opt/ml/processing/model'
     for file in os.listdir(model_dir):
         logger.info(file)
-    
-    logger.debug('Loading model.')
+        
     model_path = os.path.join(model_dir, 'model.tar.gz')
-    # Open the .tar.gz file
-    with tarfile.open(model_path, 'r:gz') as tar:
-        # Extract all files to the model directory
+    with tarfile.open(model_path) as tar:
         tar.extractall(path=model_dir)
-
+    
     for file in os.listdir(model_dir):
-        logger.debug(file)
-                     
-    # Load the serialized model data from a file
-    with open(f'{model_dir}model.pkl', "rb") as f:
-        serialized_model = f.read()
+        logger.info(file)
+        
+    logger.debug('Loading sklearn model.')
+    model = xgb.Booster()
+    model.load_model(os.path.join(model_dir, 'model.xgb'))
 
-    # Deserialize the model using cloudpickle
-    result = cloudpickle.loads(serialized_model)
-    metrics = result.metrics
+    logger.debug('Reading test data.')
+
+    test_path = "/opt/ml/processing/test/"
+    # Get list of all csv files in folder
+    csv_files = glob.glob(f'{test_path}*.csv')
+    # Create empty dataframe
+    df = pd.DataFrame()
+    
+    # Loop through csv files and read into df 
+    for f in csv_files:
+        filename = os.path.basename(f)
+        tmp_df = pd.read_csv(f, header=None)
+        df = pd.concat([df, tmp_df], ignore_index=True)
+
+    y_test = df.iloc[:, 0].to_numpy()
+    df.drop(df.columns[0], axis=1, inplace=True)
+    X_test = df.to_numpy()
+    
+    logger.info('Performing predictions against test data.')
+    predictions = model.predict(X_test)
 
     # See the regression metrics
     # see: https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality-metrics.html
-    logger.debug('extracting metrics.')
-    mae = metrics['valid-mae']
-    rmse = metrics['valid-rmse']
+    logger.debug('Calculating metrics.')
+    mae = mean_absolute_error(y_test, predictions)
+    mse = mean_squared_error(y_test, predictions)
+    rmse = sqrt(mse)
     report_dict = {
         'regression_metrics': {
             'mae': {
