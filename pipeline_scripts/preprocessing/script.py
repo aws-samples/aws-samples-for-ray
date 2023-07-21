@@ -5,6 +5,12 @@ subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'sagemaker','ray'
 import argparse
 import os
 
+import sagemaker
+# Experiments
+from sagemaker.session import Session
+from sagemaker.feature_store.feature_group import FeatureGroup
+
+import boto3
 import ray
 from ray.air.config import ScalingConfig
 from ray.data import Dataset
@@ -17,11 +23,13 @@ def read_parameters():
         (Namespace): read parameters
     """
     parser = argparse.ArgumentParser()
+    parser.add_argument('--feature_group_name', type=str, default='fs-synthetic-house-price')
     parser.add_argument('--train_size', type=float, default=0.6)
     parser.add_argument('--val_size', type=float, default=0.2)
     parser.add_argument('--test_size', type=float, default=0.2)
     parser.add_argument('--random_state', type=int, default=42)
     parser.add_argument('--target_col', type=str, default='PRICE')
+    parser.add_argument('--region', type=str, default='us-east-1')
     params, _ = parser.parse_known_args()
     return params
 
@@ -85,6 +93,32 @@ def scale_dataset(train_set, val_set, test_set, target_col):
     test_set_transformed = standard_scaler.transform(test_set)
     return train_set_transformed, val_set_transformed, test_set_transformed
 
+def load_dataset(feature_group_name, region):
+    """
+    Loads the data as a ray dataset from the offline featurestore S3 location
+    Args:
+        feature_group_name (str): name of the feature group
+    Returns:
+        ds (ray.data.dataset): Ray dataset the contains the requested dat from the feature store
+    """
+    session = sagemaker.Session(boto3.Session(region_name=region))
+    fs_group = FeatureGroup(
+        name=feature_group_name, 
+        sagemaker_session=session
+    )
+
+    fs_data_loc = fs_group.describe().get("OfflineStoreConfig").get("S3StorageConfig").get("ResolvedOutputS3Uri")
+    
+    # Drop columns added by the feature store
+    # Since these are not related to the ML problem at hand
+    cols_to_drop = ["record_id", "event_time","write_time", 
+                    "api_invocation_time", "is_deleted", 
+                    "year", "month", "day", "hour"]           
+
+    ds = ray.data.read_parquet(fs_data_loc)
+    ds = ds.drop_columns(cols_to_drop)
+    print(f"{fs_data_loc} count is {ds.count()}")
+    return ds
 
 print(f"===========================================================")
 print(f"Starting pre-processing")
@@ -94,8 +128,7 @@ print(f"Reading parameters")
 args = read_parameters()
 print(f"Parameters read: {args}")
 
-# set input and output paths
-input_data_path = "/opt/ml/processing/input/house_pricing.csv"
+# set output paths
 train_data_path = "/opt/ml/processing/output/train"
 val_data_path = "/opt/ml/processing/output/validation"
 test_data_path = "/opt/ml/processing/output/test"
@@ -108,7 +141,7 @@ except:
     pass
 
 # read data input
-dataset = ray.data.read_csv(input_data_path)
+dataset = load_dataset(args.feature_group_name, args.region)
 
 # split dataset into train, validation and test
 train_set, val_set, test_set = split_dataset(

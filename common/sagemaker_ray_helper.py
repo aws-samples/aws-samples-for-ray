@@ -45,6 +45,10 @@ class RayHelper():
         master_ip = self._get_ip_from_host()
     
         if self.resource_config["current_host"] == self.master_host:
+            if ray.is_initialized():
+                print("There is a Ray cluste already running. Shutting it down.")
+                ray.shutdown()
+                time.sleep(5)
             output = subprocess.run(['ray', 'start', '--head', '-vvv', '--port', self.ray_port, '--redis-password', self.redis_pass, '--include-dashboard', 'false'], stdout=subprocess.PIPE)
             print(output.stdout.decode("utf-8"))
             ray.init(address="auto", include_dashboard=False)
@@ -54,7 +58,8 @@ class RayHelper():
 
         else:
             time.sleep(10)
-            subprocess.run(['ray', 'start', f"--address={master_ip}:{self.ray_port}", '--redis-password', self.redis_pass, "--block"], stdout=subprocess.PIPE)
+            output = subprocess.run(['ray', 'start', f"--address={master_ip}:{self.ray_port}", '--redis-password', self.redis_pass, "--block"], stdout=subprocess.PIPE)
+            print(output.stdout.decode("utf-8"))
             sys.exit(0)
     
     
