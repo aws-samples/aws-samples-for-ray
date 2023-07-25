@@ -264,7 +264,7 @@ def read_parameters():
         (Namespace): read parameters
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--feature_group_name', type=str, default='fs-synthetic-house-price')
+    parser.add_argument('--feature_group_name', type=str, default='fs-ray-synthetic-house-price')
     parser.add_argument('--bucket_prefix', type=str, default='aws-ray-mlops-workshop/feature-store')
     parser.add_argument('--num_actors', type=int, default=4)
     parser.add_argument('--region', type=str, default='us-east-1')

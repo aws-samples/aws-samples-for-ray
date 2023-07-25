@@ -1,6 +1,7 @@
 import subprocess
 import sys
-subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pandas==1.5.2', 'sagemaker','ray[all]==2.4.0', 'modin[ray]==0.18.0', 'xgboost_ray', 'pyarrow >= 6.0.1','pydantic==1.10.10', 'gpustat==1.0.0'])
+# subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pandas==1.5.2', 'sagemaker','ray[all]==2.4.0', 'modin[ray]==0.18.0', 'xgboost_ray', 'pyarrow >= 6.0.1','pydantic==1.10.10', 'gpustat==1.0.0'])
+
 import os
 import time
 from glob import glob
@@ -76,7 +77,13 @@ def load_dataset(path, num_workers, target_col="price"):
     Returns:
         ds (ray.data.dataset): Ray dataset the contains the requested dat from the feature store
     """
- 
+    """
+    cols_to_drop=[]
+    # A simple check is this is test data
+    # If True add the target column to the columns list to be dropped
+    if '/test/' in path:
+        cols_to_drop.append(target_col)
+    """
     csv_files = glob(os.path.join(path, "*.csv"))
     print(f"found {len(csv_files)} files at {path}")
     ds = ray.data.read_csv(path)
