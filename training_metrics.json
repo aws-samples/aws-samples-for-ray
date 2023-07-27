@@ -1,1 +1,1 @@
-{"regression_metrics": {"validation:mae": {"value": 5658.49853515625, "standard_deviation": "NaN"}, "validation:rmse": {"value": 8070.2236328125, "standard_deviation": "NaN"}, "ObjectiveMetric": {"value": 8070.2236328125, "standard_deviation": "NaN"}}}
+{"regression_metrics": {"validation:mae": {"value": 5204.34423828125, "standard_deviation": "NaN"}, "validation:rmse": {"value": 9027.71484375, "standard_deviation": "NaN"}, "ObjectiveMetric": {"value": 9027.71484375, "standard_deviation": "NaN"}}}
