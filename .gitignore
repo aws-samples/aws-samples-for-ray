@@ -160,3 +160,9 @@ cython_debug/
 #.idea/
 **/*.tar..gz
 **/*.pkl
+
+Others
+.is_checkpoint
+.metadata.pkl
+.tune_metadata
+
