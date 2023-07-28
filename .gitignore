@@ -1,3 +1,6 @@
 .ipynb_checkpoints/
 .DS_Store
 *.out
+.is_checkpoint
+.metadata.pkl
+.tune_metadata
