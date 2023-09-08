@@ -11,7 +11,7 @@ import tabnet
 import tensorflow as tf
 from ray import train
 from ray.air import session
-from ray.air.callbacks.keras import Callback as KerasCallback
+from ray.air.integrations.keras import ReportCheckpointCallback as KerasCallback
 from ray.air.config import RunConfig, ScalingConfig
 from ray.train.tensorflow import (TensorflowCheckpoint, TensorflowTrainer,
                                   prepare_dataset_shard)
@@ -68,7 +68,7 @@ def train_loop_per_worker(config):
     # Get the Ray Dataset shard for this data parallel worker,
     # and convert it to a Tensorflow Dataset.
 
-    train_data = train.get_dataset_shard("train")
+    train_data = session.get_dataset_shard("train")
 
     feature_columns = []
     for col_name in schema.names:
@@ -192,14 +192,14 @@ if __name__ == "__main__":
 
     schema = (
         ray.data.read_parquet(args.s3_schema_file)
-        .map_batches(prep_data, fn_kwargs={"cat_encoders": cat_encoders})
+        .map_batches(prep_data, fn_kwargs={"cat_encoders": cat_encoders}, batch_format="pandas")
         .schema()
     )
 
     train_ds = (
         ray.data.read_parquet(args.s3_train_data)
         .randomize_block_order()
-        .map_batches(prep_data, fn_kwargs={"cat_encoders": cat_encoders})
+        .map_batches(prep_data, fn_kwargs={"cat_encoders": cat_encoders}, batch_format="pandas")
     )
 
     #     test_ds = (ray.data

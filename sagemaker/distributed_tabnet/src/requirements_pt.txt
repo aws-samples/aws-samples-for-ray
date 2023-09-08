@@ -1,6 +1,6 @@
 torchmetrics>=0.3 
-lightning-bolts 
+lightning-bolts==0.5.0
 pytorch-lightning<1.7
-ray[default]
-ray_lightning
-pytorch-tabnet
+ray[default]==2.6.3
+ray_lightning==0.3.0
+pytorch-tabnet==4.0
