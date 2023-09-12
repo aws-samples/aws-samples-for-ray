@@ -62,7 +62,7 @@ class LitTabNet(pl.LightningModule):
         loss = loss - self.lambda_sparse * M_loss
 
         preds = torch.argmax(output, dim=1)
-        acc = accuracy(preds, y)
+        acc = accuracy(preds, y, task="binary")
 
         if stage:
             self.log(
@@ -194,12 +194,16 @@ def train(
         # .repartition(num_gpus)
         .window(blocks_per_window=num_gpus)
         .map_batches(
-            prep_data, fn_kwargs={"cat_encoders": cat_encoders, "drop_cols": drop_cols}
+            prep_data, 
+            fn_kwargs={"cat_encoders": cat_encoders, "drop_cols": drop_cols}, 
+            batch_format="pandas"
         )
         .random_shuffle_each_window()
         .repeat()
     )
 
+    print(f"s3_val_paths: {s3_val_paths}")
+    print(f"num of gpus: {num_gpus}")
     val_pipe = (
         ray.data.read_parquet(
             s3_val_paths
@@ -207,7 +211,9 @@ def train(
         # .repartition(num_gpus)
         .window(blocks_per_window=num_gpus)
         .map_batches(
-            prep_data, fn_kwargs={"cat_encoders": cat_encoders, "drop_cols": drop_cols}
+            prep_data, 
+            fn_kwargs={"cat_encoders": cat_encoders, "drop_cols": drop_cols}, 
+            batch_format="pandas"
         )
         .repeat()
     )
@@ -221,7 +227,9 @@ def train(
         )
         .window(blocks_per_window=1)
         .map_batches(
-            prep_data, fn_kwargs={"cat_encoders": cat_encoders, "drop_cols": drop_cols}
+            prep_data, 
+            fn_kwargs={"cat_encoders": cat_encoders, "drop_cols": drop_cols},
+            batch_format="pandas"
         )
         .schema()
     )
