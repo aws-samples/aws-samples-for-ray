@@ -25,7 +25,7 @@ ray up cluster-inference-serve.yaml
 * Deploy the model using serve
 ```
 ray exec cluster-inference-serve.yaml \
-'serve run aws_neuron_core_inference_serve:entrypoint --runtime-env-json='{"env_vars":{"NEURON_CC_FLAGS": "--model-type=transformer-inference", "FI_EFA_FORK_SAFE":"1"}}'' \
+'source aws_neuron_venv_pytorch/bin/activate && cd neuron_demo && serve run aws_neuron_core_inference_serve:entrypoint --runtime-env-json="{\"env_vars\":{\"NEURON_CC_FLAGS\": \"--model-type=transformer-inference\",\"FI_EFA_FORK_SAFE\":\"1\"}}"' \
 --tmux
 ```
 
@@ -74,6 +74,14 @@ import requests
 response = requests.get(f"http://127.0.0.1:8000/infer?sentence=AWS is super cool")
 print(response.status_code, response.json())
 ```
+
+## Demo with gradio
+The demo file gradio_ray_serve.py integrates Llama2 with Gradio app on Ray Serve. Llama 2 inference is deployed through Gradio app on Ray Serve so it can process and respond to HTTP requests.
+```
+source aws_neuron_venv_pytorch/bin/activate
+pip install gradio
+serve run gradio_ray_serve:app --runtime-env-json='{"env_vars":{"NEURON_CC_FLAGS": "--model-type=transformer-inference", "FI_EFA_FORK_SAFE":"1"}}'
+``` 
 
 ## Teardown
 To teardown the cluster/resources
