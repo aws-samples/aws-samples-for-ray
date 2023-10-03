@@ -1,7 +1,8 @@
-ray
-ray[rllib]
-ray[tune]
-gym
-dm-tree
-pygame
-tensorflow-probability==0.16.0
+ray==2.7.0
+ray[rllib]==2.7.0
+ray[tune]==2.7.0
+gymnasium==0.28.1
+dm-tree==0.1.8
+pygame==2.5.2
+protobuf==3.20.*
+tensorflow-probability==0.22.0

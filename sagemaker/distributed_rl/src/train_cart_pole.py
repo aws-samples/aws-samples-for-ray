@@ -1,6 +1,7 @@
 import argparse
 import ray
 from ray import tune
+from ray.train import report
 from ray.rllib.algorithms.ppo import PPO, PPOConfig
 
 from sagemaker_ray_helper import RayHelper
@@ -9,15 +10,24 @@ from sagemaker_ray_helper import RayHelper
 CHECKPOINT_ROOT = f"/opt/ml/checkpoints"
 
 
-def my_train_fn(configuration, reporter):
+def my_train_fn(configuration):
     """Training function for RL model. Here we use the Cart Pole Example. We pull the environment from the gym
     library. We use the PPO algorithm to execute iterations.
 
     :param configuration: (dict) Configuration dictionary for PPO
-    :param reporter: (tune.report)
     :return:
     """
-    iterations = configuration.pop("train-iterations", 10)
+    
+    # metric names that we want reported via ray.train.report function
+    metrics = [
+        'episode_reward_max','episode_reward_min', 'episode_reward_mean', 
+        'episode_len_mean', 'episodes_this_iter','episodes_total', 
+        'training_iteration', 'trial_id', 'date', 'timestamp',
+        'timesteps_total'
+    ]
+    
+    iterations = configuration.pop("training_iteration", 10)
+    
 
     ppo_config = PPOConfig().update_from_dict(configuration).environment("CartPole-v1")
     
@@ -34,7 +44,9 @@ def my_train_fn(configuration, reporter):
     agent = ppo_config.build()
     for i in range(iterations):
         result = agent.train()
-        reporter(**result)
+        # use report function to report metrics
+        # can also add print statements to print specific keys of result dict if desired
+        report({key: value for key,value in result.items() if key in metrics})
         # create custom logic to save checkpoint and check for stopping condition
         # every 5 iterations
         if i % 5 == 0:
@@ -99,7 +111,7 @@ if __name__ == "__main__":
     print(f"all cluster resources = {cluster_resources}")
 
     config = {
-        "train-iterations": args.train_iterations,
+        "training_iteration": args.train_iterations,
         "num_workers": args.num_workers,
         "framework": args.framework,
         "lr": args.lr,
